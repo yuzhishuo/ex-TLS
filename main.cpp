@@ -1,31 +1,25 @@
-/**
- * @file main.cpp
- * @author Yimin Liu (aoumeior@outlook.com)
- * @brief
- * @version 0.1
- * @date 2022-01-08
- *
- * @copyright Copyright (c) 2022
- *
- */
-
-// std
-#include <iostream>  // for std::cout
-
-// custom
-#include "JumpGame2.h"  // for JumpGame2::Solution
-#include "configure.h"  // for CMAKE_PROJECT_VERSION_MAJOR, CMAKE_PROJECT_VERSION_MINOR
-
-// 3rd party
-#include <spdlog/spdlog.h>  // for SPDLOG_ERROR, SPDLOG_INFO
+#include <pthread.h>
+#include <stdlib.h>
+#include <spdlog/spdlog.h>
+#include <assert.h>
+static pthread_key_t key;
 
 int main(int argc, char** argv) {
-  std::cout << "PROJECT_NAME is" << std::endl;
-  std::cout << "PROJECT_VERSION_MAJOR is " << CMAKE_PROJECT_VERSION_MAJOR
-            << std::endl;
-  std::cout << "PROJECT_VERSION_MINOR is " << CMAKE_PROJECT_VERSION_MINOR
-            << std::endl;
+  auto val = new int{100};
+  pthread_key_create(&key, NULL);
 
-  SPDLOG_ERROR("Hello, world!");
-  SPDLOG_INFO("Hello, world!");
+  if(auto ret = pthread_setspecific(key, val); ret)
+  {
+    SPDLOG_ERROR("set specific key  fail");
+    pthread_key_delete(key);
+    return -1;
+  }
+
+  auto capture_value = static_cast<int*>(pthread_getspecific(key));
+
+  assert(capture_value == val);
+
+  pthread_key_delete(key);
+
+  return 0;
 }
